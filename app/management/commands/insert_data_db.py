@@ -5,9 +5,6 @@ from datetime import datetime
 
 from os import system 
 
-def onde_eu_to():
-    print(system('ls ./data'))
-
 DATA_DIR = './data/'
 
 def import_appointment_slots():
@@ -26,7 +23,7 @@ def import_appointment_slots():
         # Inserção em lote para melhor performance
         AppointmentSlot.objects.bulk_create(slots, ignore_conflicts=True)
 
-    print(f'{len(slots)} registros importados com sucesso!')
+    print(f'{len(slots)} registros slots importados com sucesso!')
 
 def import_appointments():
     data_path = DATA_DIR+'appointments.csv'
@@ -86,3 +83,10 @@ def import_patients():
         Patient.objects.bulk_create(patients, ignore_conflicts=True)
 
     print(f'{len(patients)} registros de pacientes importados com sucesso!')
+
+
+def import_all_data():
+    import_appointment_slots()
+    import_patients()
+    import_appointments()
+    print('Dados importados com sucesso!')

@@ -1,2 +1,4 @@
+>> docker exec -it {id-do-container-django} bash 
 >> python manage.py shell
 >> from app.management.commands import insert_data_db
+>> insert_data_db.import_all_data()
