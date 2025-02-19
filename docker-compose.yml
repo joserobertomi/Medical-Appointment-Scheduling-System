@@ -1,0 +1,79 @@
+name: appointment-scheduler
+
+volumes:
+  local_postgres_data: {}
+
+services:
+
+  server:
+    build:
+      context: .
+    container_name: dz07
+    command: sh -c "gunicorn project.wsgi:application --bind 0.0.0.0:8000 --workers=3"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - default
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: pz07
+    env_file:
+      - .env
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data
+    restart: on-failure
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+
+  migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mg07
+    command: >
+      sh -c "python manage.py makemigrations && 
+             python manage.py migrate && 
+             python manage.py collectstatic --noinput"
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+    networks:
+      - default
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db_ui:
+    image: sosedoff/pgweb:0.13.1
+    container_name: pw07
+    environment:
+      - PGWEB_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
+    env_file:
+      - .env
+    depends_on: 
+      db:
+        condition: service_healthy
+    ports: 
+      - "5000:8081" 
+    networks:
+      - default
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge
