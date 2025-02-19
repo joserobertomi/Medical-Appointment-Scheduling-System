@@ -12,7 +12,6 @@ DATA_DIR = './data/'
 
 def import_appointment_slots():
     data_path = DATA_DIR+'slots.csv'
-    print(data_path)
     with open(data_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         slots = []
@@ -20,7 +19,7 @@ def import_appointment_slots():
             slots.append(AppointmentSlot(
                 slot_id=row['slot_id'],
                 appointment_date=datetime.strptime(row['appointment_date'], '%Y-%m-%d').date(),
-                appointment_time=datetime.strptime(row['appointment_time'], '%H:%M').time(),
+                appointment_time=datetime.strptime(row['appointment_time'][:5], '%H:%M').time(),
                 is_available=row['is_available'].lower() == 'true'
             ))
 
@@ -30,7 +29,8 @@ def import_appointment_slots():
     print(f'{len(slots)} registros importados com sucesso!')
 
 def import_appointments():
-    with open('appointments.csv', newline='', encoding='utf-8') as csvfile:
+    data_path = DATA_DIR+'appointments.csv'
+    with open(data_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         appointments = []
 
@@ -43,16 +43,14 @@ def import_appointments():
                     slot=slot,
                     scheduling_date=datetime.strptime(row['scheduling_date'], '%Y-%m-%d').date(),
                     appointment_date=datetime.strptime(row['appointment_date'], '%Y-%m-%d').date(),
-                    appointment_time=datetime.strptime(row['appointment_time'], '%H:%M').time(),
+                    appointment_time=datetime.strptime(row['appointment_time'][:5], '%H:%M').time(),
                     scheduling_interval=int(row['scheduling_interval']),
                     status=row['status'],
-                    check_in_time=datetime.strptime(row['check_in_time'], '%H:%M').time() if row['check_in_time'] else None,
-                    appointment_duration=timedelta(seconds=int(row['appointment_duration'].split(":")[0]) * 3600 +
-                                                   int(row['appointment_duration'].split(":")[1]) * 60) if row['appointment_duration'] else None,
-                    start_time=datetime.strptime(row['start_time'], '%H:%M').time() if row['start_time'] else None,
-                    end_time=datetime.strptime(row['end_time'], '%H:%M').time() if row['end_time'] else None,
-                    waiting_time=timedelta(seconds=int(row['waiting_time'].split(":")[0]) * 3600 +
-                                           int(row['waiting_time'].split(":")[1]) * 60) if row['waiting_time'] else None,
+                    check_in_time=datetime.strptime(row['check_in_time'][:5], '%H:%M').time() if row['check_in_time'] else None,
+                    appointment_duration=timedelta(minutes=float(row['appointment_duration'])) if row['appointment_duration'] else None,
+                    start_time=datetime.strptime(row['start_time'][:5], '%H:%M').time() if row['start_time'] else None,
+                    end_time=datetime.strptime(row['end_time'][:5], '%H:%M').time() if row['end_time'] else None,
+                    waiting_time=timedelta(minutes=float(row['waiting_time'])) if row['waiting_time'] else None,
                     patient_id=row['patient_id'],
                     sex=row['sex'],
                     age=int(row['age']),
@@ -69,7 +67,8 @@ def import_appointments():
 
 
 def import_patients():
-    with open('patients.csv', newline='', encoding='utf-8') as csvfile:
+    data_path = DATA_DIR+'patients.csv'
+    with open(data_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         patients = []
 
